@@ -35,6 +35,7 @@ import org.ballerinalang.util.codegen.CallableUnitInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
 import org.ballerinalang.util.codegen.WorkerInfo;
 import org.ballerinalang.util.exceptions.BallerinaException;
+import org.ballerinalang.util.tracer.TracerRegistry;
 
 import java.io.PrintStream;
 import java.util.Map;
@@ -67,7 +68,7 @@ public class BLangVMWorkers {
 
             BLangVM bLangVM = new BLangVM(programFile);
             ExecutorService executor = ThreadPoolFactory.getInstance().getWorkerExecutor();
-            WorkerExecutor workerRunner = new WorkerExecutor(bLangVM, workerContext, workerInfo, 
+            WorkerExecutor workerRunner = new WorkerExecutor(bLangVM, workerContext, workerInfo,
                     new ConcurrentLinkedQueue<>());
             workerContext.startTrackWorker();
             executor.submit(workerRunner);
@@ -137,18 +138,29 @@ public class BLangVMWorkers {
         private WorkerInfo workerInfo;
         private Queue<WorkerResult> resultHolder;
         private Semaphore resultCounter;
+        private Map scopes;
 
-        public WorkerExecutor(BLangVM bLangVM, Context bContext, WorkerInfo workerInfo, 
-                Queue<WorkerResult> resultHolder) {
+        public WorkerExecutor(BLangVM bLangVM, Context bContext, WorkerInfo workerInfo,
+                              Queue<WorkerResult> resultHolder) {
             this.bLangVM = bLangVM;
             this.bContext = bContext;
             this.workerInfo = workerInfo;
             this.resultHolder = resultHolder;
+            if (TracerRegistry.getInstance().getTracer() != null) {
+                outStream.println("Start worker Thread ID - > " + Thread.currentThread().getId());
+                this.scopes = TracerRegistry.getInstance().getTracer().getScopes();
+                outStream.println("Worker- > " + TracerRegistry.getInstance().getTracer());
+            }
         }
 
         @SuppressWarnings("rawtypes")
         @Override
         public void run() throws BallerinaException {
+            if (TracerRegistry.getInstance().getTracer() != null) {
+                outStream.println("-- Started worker Thread ID - > " + Thread.currentThread().getId()
+                        + ", active spans -" + this.scopes);
+                this.bContext.setProperty(TracerRegistry.getPropertyNameForParentSpanHolder(), this.scopes);
+            }
             BRefValueArray bRefValueArray = new BRefValueArray(new BArrayType(BTypes.typeAny));
             bLangVM.execWorker(bContext, workerInfo.getCodeAttributeInfo().getCodeAddrs());
             if (bContext.getError() != null) {
@@ -187,12 +199,16 @@ public class BLangVMWorkers {
             if (this.resultCounter != null) {
                 this.resultCounter.release();
             }
+
+            if (TracerRegistry.getInstance().getTracer() != null) {
+                this.bContext.setProperty(TracerRegistry.getPropertyNameForParentSpanHolder(), null);
+            }
         }
-        
+
         public void setResultCounterSemaphore(Semaphore resultCounter) {
             this.resultCounter = resultCounter;
         }
-        
+
     }
 
     static class WorkerReturnIndex {
