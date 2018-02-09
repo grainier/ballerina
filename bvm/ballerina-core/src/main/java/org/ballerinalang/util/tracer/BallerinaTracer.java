@@ -25,6 +25,6 @@ import java.util.Map;
  */
 public interface BallerinaTracer {
 
-    Map<String, Object> getScopes();
+    Map<String, Object> getActiveSpanContext();
 
 }

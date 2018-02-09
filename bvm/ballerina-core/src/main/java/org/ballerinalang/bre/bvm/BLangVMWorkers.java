@@ -148,7 +148,7 @@ public class BLangVMWorkers {
             this.resultHolder = resultHolder;
             if (TracerRegistry.getInstance().getTracer() != null) {
                 outStream.println("Start worker Thread ID - > " + Thread.currentThread().getId());
-                this.scopes = TracerRegistry.getInstance().getTracer().getScopes();
+                this.scopes = TracerRegistry.getInstance().getTracer().getActiveSpanContext();
                 outStream.println("Worker- > " + TracerRegistry.getInstance().getTracer());
             }
         }
