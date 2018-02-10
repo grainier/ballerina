@@ -201,6 +201,9 @@ public class Main {
         @Parameter(names = {"--service", "-s"}, description = "run services instead of main")
         private boolean runServices;
 
+        @Parameter(names = {"--trace", "-t"}, description = "enable tracing")
+        private boolean traceEnabled;
+
         @Parameter(names = {"--sourceroot"}, description = "path to the directory containing source files and packages")
         private String sourceRoot;
 
@@ -242,7 +245,8 @@ public class Main {
                     throw LauncherUtils.createUsageException("too many arguments");
                 }
 
-                LauncherUtils.runProgram(sourceRootPath, Paths.get(argList.get(0)), true, new String[0]);
+                LauncherUtils.runProgram(sourceRootPath, Paths.get(argList.get(0)), true, traceEnabled,
+                        new String[0]);
                 return;
             }
 
@@ -256,7 +260,7 @@ public class Main {
                 programArgs = new String[0];
             }
 
-            LauncherUtils.runProgram(sourceRootPath, sourcePath, false, programArgs);
+            LauncherUtils.runProgram(sourceRootPath, sourcePath, false, traceEnabled, programArgs);
         }
 
         @Override

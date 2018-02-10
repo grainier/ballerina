@@ -157,6 +157,10 @@ public class Mnemonics {
         mnemonics[InstructionCodes.FPCALL] = "fp_call";
         mnemonics[InstructionCodes.FPLOAD] = "fp_load";
         mnemonics[InstructionCodes.TCALL] = "tcall";
+        mnemonics[InstructionCodes.TRACE_CALL] = "trace_call";
+        mnemonics[InstructionCodes.TRACE_NCALL] = "trace_ncall";
+        mnemonics[InstructionCodes.TRACE_ACALL] = "trace_acall";
+        mnemonics[InstructionCodes.TRACE_TCALL] = "trace_tcall";
 
         mnemonics[InstructionCodes.I2F] = "i2f";
         mnemonics[InstructionCodes.I2S] = "i2s";
@@ -243,6 +247,7 @@ public class Mnemonics {
         mnemonics[InstructionCodes.LRET] = "lret";
         mnemonics[InstructionCodes.RRET] = "rret";
         mnemonics[InstructionCodes.RET] = "ret";
+        mnemonics[InstructionCodes.TRACE_RET] = "trace_ret";
 
         mnemonics[InstructionCodes.XML2XMLATTRS] = "xml2xmlattrs";
         mnemonics[InstructionCodes.XMLATTRLOAD] = "xmlattrload";

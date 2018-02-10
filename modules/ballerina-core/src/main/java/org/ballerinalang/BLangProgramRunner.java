@@ -28,6 +28,9 @@ import org.ballerinalang.model.types.BTypes;
 import org.ballerinalang.model.values.BRefType;
 import org.ballerinalang.model.values.BStringArray;
 import org.ballerinalang.util.codegen.FunctionInfo;
+import org.ballerinalang.util.codegen.Instruction;
+import org.ballerinalang.util.codegen.InstructionCodes;
+import org.ballerinalang.util.codegen.InstructionFactory;
 import org.ballerinalang.util.codegen.PackageInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
 import org.ballerinalang.util.codegen.ServiceInfo;
@@ -61,6 +64,8 @@ public class BLangProgramRunner {
 
         Debugger debugger = new Debugger(programFile);
         initDebugger(bContext, debugger);
+
+        initTracing(bContext);
 
         // Invoke package init function
         BLangFunctions.invokePackageInitFunction(programFile, servicesPackage.getInitFunctionInfo(), bContext);
@@ -102,6 +107,8 @@ public class BLangProgramRunner {
 
         Debugger debugger = new Debugger(programFile);
         initDebugger(bContext, debugger);
+
+        initTracing(bContext);
 
         // Invoke package init function
         FunctionInfo mainFuncInfo = getMainFunction(mainPkgInfo);
@@ -146,6 +153,48 @@ public class BLangProgramRunner {
             bContext.setDebugContext(debugContext);
             debugger.init();
             debugger.addDebugContextAndWait(debugContext);
+        }
+    }
+
+    private static void initTracing(Context bContext) {
+        ProgramFile programFile = bContext.getProgramFile();
+        // If trace enabled, inject trace call/ret instructions
+        if (programFile.getTracer().isTraceEnabled()) {
+            for (PackageInfo packageInfo : programFile.getPackageInfoEntries()) {
+                injectTracingInstructions(packageInfo);
+            }
+        }
+    }
+
+    private static void injectTracingInstructions(PackageInfo packageInfo) {
+        Instruction[] instructions = packageInfo.getInstructions();
+        for (int i = 0; i < instructions.length; i++) {
+            Instruction instruction = instructions[i];
+            switch (instruction.getOpcode()) {
+                case InstructionCodes.CALL:
+                    Instruction.InstructionCALL call = (Instruction.InstructionCALL) instruction;
+                    instructions[i] = InstructionFactory.get(InstructionCodes.TRACE_CALL, call.funcRefCPIndex,
+                            call.functionInfo, call.argRegs, call.retRegs);
+                    break;
+                case InstructionCodes.NCALL:
+                    Instruction.InstructionCALL iCall = (Instruction.InstructionCALL) instruction;
+                    instructions[i] = InstructionFactory.get(InstructionCodes.TRACE_NCALL, iCall.funcRefCPIndex,
+                            iCall.functionInfo, iCall.argRegs, iCall.retRegs);
+                    break;
+                case InstructionCodes.ACALL:
+                    Instruction.InstructionACALL aCall = (Instruction.InstructionACALL) instruction;
+                    instructions[i] = InstructionFactory.get(InstructionCodes.TRACE_ACALL, aCall.actionRefCPIndex,
+                            aCall.actionName, aCall.argRegs, aCall.retRegs);
+                    break;
+                case InstructionCodes.TCALL:
+                    Instruction.InstructionTCALL tCall = (Instruction.InstructionTCALL) instruction;
+                    instructions[i] = InstructionFactory.get(InstructionCodes.TRACE_TCALL, tCall.transformerRefCPIndex,
+                            tCall.transformerInfo, tCall.argRegs, tCall.retRegs);
+                    break;
+                case InstructionCodes.RET:
+                    instructions[i] = InstructionFactory.get(InstructionCodes.TRACE_RET);
+                    break;
+            }
         }
     }
 

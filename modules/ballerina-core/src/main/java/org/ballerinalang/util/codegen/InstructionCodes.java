@@ -282,5 +282,11 @@ public interface InstructionCodes {
     int TEQ = 252;
     int TNE = 253;
 
-    int INSTRUCTION_CODE_COUNT = 254;
+    int TRACE_CALL = 254;
+    int TRACE_NCALL = 255;
+    int TRACE_ACALL = 256;
+    int TRACE_TCALL = 257;
+    int TRACE_RET = 258;
+
+    int INSTRUCTION_CODE_COUNT = 259;
 }

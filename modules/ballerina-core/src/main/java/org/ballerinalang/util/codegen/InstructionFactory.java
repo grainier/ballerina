@@ -28,4 +28,18 @@ public class InstructionFactory {
         // TODO Implement subtypes of certain instructions. etc for call, ret bytecodes
         return new Instruction(opcode, operands);
     }
+
+    public static Instruction get(int opcode, int funcRefCPIndex, FunctionInfo functionInfo,
+                                  int[] argRegs, int[] retRegs) {
+        return new Instruction.InstructionCALL(opcode, funcRefCPIndex, functionInfo, argRegs, retRegs);
+    }
+
+    public static Instruction get(int opcode, int actionRefCPIndex, String actionName, int[] argRegs, int[] retRegs) {
+        return new Instruction.InstructionACALL(opcode, actionRefCPIndex, actionName, argRegs, retRegs);
+    }
+
+    public static Instruction get(int opcode, int transformerRefCPIndex, TransformerInfo transformerInfo,
+                                  int[] argRegs, int[] retRegs) {
+        return new Instruction.InstructionTCALL(opcode, transformerRefCPIndex, transformerInfo, argRegs, retRegs);
+    }
 }

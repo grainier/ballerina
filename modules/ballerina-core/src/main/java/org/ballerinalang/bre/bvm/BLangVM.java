@@ -109,6 +109,7 @@ import org.ballerinalang.util.exceptions.BLangExceptionHelper;
 import org.ballerinalang.util.exceptions.BLangNullReferenceException;
 import org.ballerinalang.util.exceptions.BallerinaException;
 import org.ballerinalang.util.exceptions.RuntimeErrors;
+import org.ballerinalang.util.trace.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.ballerinalang.util.Lists;
@@ -230,6 +231,7 @@ public class BLangVM {
         InstructionCALL callIns;
 
         boolean debugEnabled = programFile.getDebugger().isDebugEnabled();
+        Tracer tracer = programFile.getTracer();
 
         StackFrame currentSF, callersSF;
         int callersRetRegIndex;
@@ -460,17 +462,40 @@ public class BLangVM {
                     callIns = (InstructionCALL) instruction;
                     invokeCallableUnit(callIns.functionInfo, callIns.argRegs, callIns.retRegs);
                     break;
+                case InstructionCodes.TRACE_CALL:
+                    callIns = (InstructionCALL) instruction;
+                    tracer.markIn(Tracer.InstructionType.CALL, callIns.functionInfo.getName(), sf);
+                    invokeCallableUnit(callIns.functionInfo, callIns.argRegs, callIns.retRegs);
+                    break;
                 case InstructionCodes.NCALL:
                     callIns = (InstructionCALL) instruction;
                     invokeNativeFunction(callIns.functionInfo, callIns.argRegs, callIns.retRegs);
+                    break;
+                case InstructionCodes.TRACE_NCALL:
+                    callIns = (InstructionCALL) instruction;
+                    tracer.markIn(Tracer.InstructionType.NATIVE_CALL, callIns.functionInfo.getName(), sf);
+                    invokeNativeFunction(callIns.functionInfo, callIns.argRegs, callIns.retRegs);
+                    tracer.markOut(Tracer.InstructionType.NATIVE_CALL, callIns.functionInfo.getName(), sf);
                     break;
                 case InstructionCodes.ACALL:
                     InstructionACALL acallIns = (InstructionACALL) instruction;
                     invokeAction(acallIns.actionName, acallIns.argRegs, acallIns.retRegs);
                     break;
+                case InstructionCodes.TRACE_ACALL:
+                    InstructionACALL iAcallIns = (InstructionACALL) instruction;
+                    tracer.markIn(Tracer.InstructionType.ACTION_CALL, iAcallIns.actionName, sf);
+                    invokeAction(iAcallIns.actionName, iAcallIns.argRegs, iAcallIns.retRegs);
+                    tracer.markOut(Tracer.InstructionType.ACTION_CALL, iAcallIns.actionName, sf);
+                    break;
                 case InstructionCodes.TCALL:
                     InstructionTCALL tcallIns = (InstructionTCALL) instruction;
                     invokeCallableUnit(tcallIns.transformerInfo, tcallIns.argRegs, tcallIns.retRegs);
+                    break;
+                case InstructionCodes.TRACE_TCALL:
+                    InstructionTCALL iTcallIns = (InstructionTCALL) instruction;
+                    tracer.markIn(Tracer.InstructionType.TRANSFORMER_CALL, iTcallIns.transformerInfo.getName(), sf);
+                    invokeCallableUnit(iTcallIns.transformerInfo, iTcallIns.argRegs, iTcallIns.retRegs);
+                    tracer.markOut(Tracer.InstructionType.TRANSFORMER_CALL, iTcallIns.transformerInfo.getName(), sf);
                     break;
                 case InstructionCodes.TR_BEGIN:
                     i = operands[0];
@@ -726,6 +751,9 @@ public class BLangVM {
                     break;
                 case InstructionCodes.RET:
                     handleReturn();
+                    break;
+                case InstructionCodes.TRACE_RET:
+                    traceAndHandleReturn(tracer);
                     break;
                 case InstructionCodes.XMLATTRSTORE:
                 case InstructionCodes.XMLATTRLOAD:
@@ -2969,6 +2997,18 @@ public class BLangVM {
             this.code = callersSF.packageInfo.getInstructions();
         }
         ip = currentSF.retAddrs;
+    }
+
+    private void traceAndHandleReturn(Tracer tracer) {
+        StackFrame currentSF = controlStack.popFrame();
+        if (controlStack.currentFrame != null) {
+            StackFrame callersSF = controlStack.currentFrame;
+            this.constPool = callersSF.packageInfo.getConstPoolEntries();
+            this.code = callersSF.packageInfo.getInstructions();
+        }
+        ip = currentSF.retAddrs;
+        tracer.markOut(Tracer.InstructionType.RETURN, currentSF.getCallableUnitInfo().getName(),
+                controlStack.currentFrame);
     }
 
     private void copyWorkersReturnValues(StackFrame workerSF, StackFrame parentsSF) {

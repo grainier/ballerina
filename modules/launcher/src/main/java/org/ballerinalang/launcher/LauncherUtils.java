@@ -29,6 +29,7 @@ import org.ballerinalang.util.BLangConstants;
 import org.ballerinalang.util.codegen.ProgramFile;
 import org.ballerinalang.util.codegen.ProgramFileReader;
 import org.ballerinalang.util.exceptions.BallerinaException;
+import org.ballerinalang.util.trace.Tracer;
 import org.wso2.ballerinalang.compiler.Compiler;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 import org.wso2.ballerinalang.compiler.util.CompilerOptions;
@@ -63,7 +64,8 @@ import static org.ballerinalang.compiler.CompilerOptionName.SOURCE_ROOT;
  */
 public class LauncherUtils {
 
-    public static void runProgram(Path sourceRootPath, Path sourcePath, boolean runServices, String[] args) {
+    public static void runProgram(Path sourceRootPath, Path sourcePath, boolean runServices, boolean traceEnabled,
+                                  String[] args) {
         ProgramFile programFile;
         String srcPathStr = sourcePath.toString();
         if (srcPathStr.endsWith(BLangConstants.BLANG_EXEC_FILE_SUFFIX)) {
@@ -86,6 +88,8 @@ public class LauncherUtils {
         } catch (ConfigFileParserException e) {
             throw new RuntimeException("failed to start ballerina runtime: " + e.getMessage(), e);
         }
+
+        programFile.setTracer(new Tracer(traceEnabled));
 
         if (runServices || !programFile.isMainEPAvailable()) {
             if (args.length > 0) {
