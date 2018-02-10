@@ -20,9 +20,9 @@ package org.ballerinalang.util.trace;
 
 import org.ballerinalang.bre.bvm.StackFrame;
 
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ServiceLoader;
 
 /**
  * Tracer marks pre and post instruction invocations to be used with tracing.
@@ -31,6 +31,7 @@ import java.util.List;
  */
 public class Tracer {
     private List<String> entryPoints;
+    private List<BallerinaTracing> tracers;
 
     private boolean traceEnabled;
 
@@ -40,28 +41,35 @@ public class Tracer {
 
     public Tracer(boolean traceEnabled) {
         this.traceEnabled = traceEnabled;
-        entryPoints = new ArrayList<>(0);
+        if (isTraceEnabled()) {
+            entryPoints = new ArrayList<>(0);
+            tracers = new ArrayList<>(0);
+            ServiceLoader<BallerinaTracing> loader = ServiceLoader.load(BallerinaTracing.class);
+            loader.forEach(e -> tracers.add(e));
+        }
     }
 
     /**
      * Method to mark entry point of a function.
      */
     public void markIn(InstructionType type, String name, StackFrame stackFrame) {
-        String caller = markAndGetCaller(stackFrame);
-        PrintStream out = System.out;
-        out.println(String.format("[IN] Name: %s; Type: %s; Caller: %s", caller + ":" + name, type, caller));
-        entryPoints.add(name); // TODO: name needs package and all, also try recursion
+        if (isTraceEnabled()) {
+            String caller = markAndGetCaller(stackFrame);
+            tracers.forEach(t -> t.markIn(caller + ":" + name, caller));
+            entryPoints.add(name); // TODO: name needs package and all, also try recursion
+        }
     }
 
     /**
      * Method to mark exit point of a function.
      */
     public void markOut(InstructionType type, String name, StackFrame stackFrame) {
-        String caller = markAndGetCaller(stackFrame);
-        PrintStream out = System.out;
-        out.println(String.format("[OUT] Name: %s; Type: %s; Caller: %s", caller + ":" + name, type, caller));
-        // TODO: decide whether to remove or not (test on recursion).
-        // entryPoints.remove(name);
+        if (isTraceEnabled()) {
+            String caller = markAndGetCaller(stackFrame);
+            tracers.forEach(t -> t.markOut(caller + ":" + name, caller));
+            // TODO: decide whether to remove or not (test on recursion).
+            // entryPoints.remove(name);
+        }
     }
 
     /**
