@@ -147,9 +147,7 @@ public class BLangVMWorkers {
             this.workerInfo = workerInfo;
             this.resultHolder = resultHolder;
             if (TracerRegistry.getInstance().getTracer() != null) {
-                outStream.println("Start worker Thread ID - > " + Thread.currentThread().getId());
                 this.scopes = TracerRegistry.getInstance().getTracer().getActiveSpanContext();
-                outStream.println("Worker- > " + TracerRegistry.getInstance().getTracer());
             }
         }
 
@@ -157,8 +155,7 @@ public class BLangVMWorkers {
         @Override
         public void run() throws BallerinaException {
             if (TracerRegistry.getInstance().getTracer() != null) {
-                outStream.println("-- Started worker Thread ID - > " + Thread.currentThread().getId()
-                        + ", active spans -" + this.scopes);
+                //TODO: The worker property needs to be suffixed with thread id, until the workercontext becomes unique
                 this.bContext.setProperty(TracerRegistry.getPropertyNameForParentSpanHolder(), this.scopes);
             }
             BRefValueArray bRefValueArray = new BRefValueArray(new BArrayType(BTypes.typeAny));
