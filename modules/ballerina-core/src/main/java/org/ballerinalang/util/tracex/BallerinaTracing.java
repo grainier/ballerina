@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.ballerinalang.util.trace;
+package org.ballerinalang.util.tracex;
 
 /**
  * API to expose ballerina tracing hooks.
@@ -24,9 +24,9 @@ package org.ballerinalang.util.trace;
  * @since 0.96.1
  */
 public interface BallerinaTracing {
-    void markIn(String parentUuid, String uuid, BallerinaTracer.InstructionType type, String workerName,
+    void markIn(String parentUuid, String uuid, BallerinaTracerX.InstructionType type, String workerName,
                 String methodName, String callerName);
 
-    void markOut(String uuid, BallerinaTracer.InstructionType type, String workerName, String methodName,
+    void markOut(String uuid, BallerinaTracerX.InstructionType type, String workerName, String methodName,
                  String callerName);
 }

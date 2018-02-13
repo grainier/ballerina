@@ -27,7 +27,7 @@ import org.ballerinalang.util.codegen.attributes.VarTypeCountAttributeInfo;
 import org.ballerinalang.util.codegen.cpentries.ConstantPool;
 import org.ballerinalang.util.codegen.cpentries.ConstantPoolEntry;
 import org.ballerinalang.util.debugger.Debugger;
-import org.ballerinalang.util.trace.BallerinaTracer;
+import org.ballerinalang.util.tracex.BallerinaTracerX;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -64,7 +64,7 @@ public class ProgramFile implements ConstantPool, AttributeInfoPool {
     private boolean servicesAvailable = false;
 
     private Debugger debugger;
-    private BallerinaTracer ballerinaTracer;
+    private BallerinaTracerX ballerinaTracerX;
 
     // Cached values.
     // This is the actual path given by the user and this is used primarily for error reporting
@@ -236,12 +236,12 @@ public class ProgramFile implements ConstantPool, AttributeInfoPool {
         return debugger;
     }
 
-    public void setBallerinaTracer(BallerinaTracer ballerinaTracer) {
-        this.ballerinaTracer = ballerinaTracer;
+    public void setBallerinaTracerX(BallerinaTracerX ballerinaTracerX) {
+        this.ballerinaTracerX = ballerinaTracerX;
     }
 
-    public BallerinaTracer getBallerinaTracer() {
-        return ballerinaTracer;
+    public BallerinaTracerX getBallerinaTracerX() {
+        return ballerinaTracerX;
     }
 
 }

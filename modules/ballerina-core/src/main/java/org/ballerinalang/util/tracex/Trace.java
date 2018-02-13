@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.ballerinalang.util.trace;
+package org.ballerinalang.util.tracex;
 
 import java.util.UUID;
 

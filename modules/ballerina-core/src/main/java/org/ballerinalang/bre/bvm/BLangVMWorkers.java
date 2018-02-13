@@ -35,7 +35,7 @@ import org.ballerinalang.util.codegen.CallableUnitInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
 import org.ballerinalang.util.codegen.WorkerInfo;
 import org.ballerinalang.util.exceptions.BallerinaException;
-import org.ballerinalang.util.trace.BallerinaTracer;
+import org.ballerinalang.util.tracex.BallerinaTracerX;
 
 import java.io.PrintStream;
 import java.util.Map;
@@ -151,10 +151,10 @@ public class BLangVMWorkers {
         @SuppressWarnings("rawtypes")
         @Override
         public void run() throws BallerinaException {
-            BallerinaTracer ballerinaTracer = bContext.programFile.getBallerinaTracer();
+            BallerinaTracerX ballerinaTracerX = bContext.programFile.getBallerinaTracerX();
             bContext.setProperty("THREAD_ID", Thread.currentThread().getId());
             bContext.setProperty("TRACE_ID", UUID.randomUUID().toString());
-            ballerinaTracer.buildSpan(BallerinaTracer.InstructionType.WORKER_START, workerInfo.getWorkerName(),
+            ballerinaTracerX.buildSpan(BallerinaTracerX.InstructionType.WORKER_START, workerInfo.getWorkerName(),
                     bContext.getControlStack().currentFrame);
 
             BRefValueArray bRefValueArray = new BRefValueArray(new BArrayType(BTypes.typeAny));
@@ -196,7 +196,7 @@ public class BLangVMWorkers {
                 this.resultCounter.release();
             }
 
-            ballerinaTracer.finishSpan(BallerinaTracer.InstructionType.WORKER_HALT, workerInfo.getWorkerName(),
+            ballerinaTracerX.finishSpan(BallerinaTracerX.InstructionType.WORKER_HALT, workerInfo.getWorkerName(),
                     bContext.getControlStack().currentFrame);
         }
         
