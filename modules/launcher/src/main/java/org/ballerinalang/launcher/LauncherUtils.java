@@ -29,7 +29,7 @@ import org.ballerinalang.util.BLangConstants;
 import org.ballerinalang.util.codegen.ProgramFile;
 import org.ballerinalang.util.codegen.ProgramFileReader;
 import org.ballerinalang.util.exceptions.BallerinaException;
-import org.ballerinalang.util.trace.Tracer;
+import org.ballerinalang.util.trace.BallerinaTracer;
 import org.wso2.ballerinalang.compiler.Compiler;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 import org.wso2.ballerinalang.compiler.util.CompilerOptions;
@@ -89,7 +89,7 @@ public class LauncherUtils {
             throw new RuntimeException("failed to start ballerina runtime: " + e.getMessage(), e);
         }
 
-        programFile.setTracer(new Tracer(traceEnabled));
+        programFile.setBallerinaTracer(new BallerinaTracer(traceEnabled));
 
         if (runServices || !programFile.isMainEPAvailable()) {
             if (args.length > 0) {

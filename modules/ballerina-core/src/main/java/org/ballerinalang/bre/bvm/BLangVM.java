@@ -109,7 +109,7 @@ import org.ballerinalang.util.exceptions.BLangExceptionHelper;
 import org.ballerinalang.util.exceptions.BLangNullReferenceException;
 import org.ballerinalang.util.exceptions.BallerinaException;
 import org.ballerinalang.util.exceptions.RuntimeErrors;
-import org.ballerinalang.util.trace.Tracer;
+import org.ballerinalang.util.trace.BallerinaTracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wso2.ballerinalang.util.Lists;
@@ -184,6 +184,7 @@ public class BLangVM {
         }
 
         try {
+//            traceCode(currentFrame.packageInfo);
             exec();
         } catch (Throwable e) {
             String message;
@@ -231,7 +232,7 @@ public class BLangVM {
         InstructionCALL callIns;
 
         boolean debugEnabled = programFile.getDebugger().isDebugEnabled();
-        Tracer tracer = programFile.getTracer();
+        BallerinaTracer ballerinaTracer = programFile.getBallerinaTracer();
 
         StackFrame currentSF, callersSF;
         int callersRetRegIndex;
@@ -464,7 +465,7 @@ public class BLangVM {
                     break;
                 case InstructionCodes.TRACE_CALL:
                     callIns = (InstructionCALL) instruction;
-                    tracer.markIn(Tracer.InstructionType.CALL, callIns.functionInfo.getName(), sf);
+                    ballerinaTracer.buildSpan(BallerinaTracer.InstructionType.CALL, callIns.functionInfo.getName(), sf);
                     invokeCallableUnit(callIns.functionInfo, callIns.argRegs, callIns.retRegs);
                     break;
                 case InstructionCodes.NCALL:
@@ -473,9 +474,11 @@ public class BLangVM {
                     break;
                 case InstructionCodes.TRACE_NCALL:
                     callIns = (InstructionCALL) instruction;
-                    tracer.markIn(Tracer.InstructionType.NATIVE_CALL, callIns.functionInfo.getName(), sf);
+                    ballerinaTracer.buildSpan(BallerinaTracer.InstructionType.NATIVE_CALL,
+                            callIns.functionInfo.getName(), sf);
                     invokeNativeFunction(callIns.functionInfo, callIns.argRegs, callIns.retRegs);
-                    tracer.markOut(Tracer.InstructionType.NATIVE_CALL, callIns.functionInfo.getName(), sf);
+                    ballerinaTracer.finishSpan(BallerinaTracer.InstructionType.NATIVE_RETURN,
+                            callIns.functionInfo.getName(), callIns.functionInfo.getName(), sf);
                     break;
                 case InstructionCodes.ACALL:
                     InstructionACALL acallIns = (InstructionACALL) instruction;
@@ -483,9 +486,10 @@ public class BLangVM {
                     break;
                 case InstructionCodes.TRACE_ACALL:
                     InstructionACALL iAcallIns = (InstructionACALL) instruction;
-                    tracer.markIn(Tracer.InstructionType.ACTION_CALL, iAcallIns.actionName, sf);
+                    ballerinaTracer.buildSpan(BallerinaTracer.InstructionType.ACTION_CALL, iAcallIns.actionName, sf);
                     invokeAction(iAcallIns.actionName, iAcallIns.argRegs, iAcallIns.retRegs);
-                    tracer.markOut(Tracer.InstructionType.ACTION_CALL, iAcallIns.actionName, sf);
+                    ballerinaTracer.finishSpan(BallerinaTracer.InstructionType.ACTION_RETURN, iAcallIns.actionName,
+                            iAcallIns.actionName, sf);
                     break;
                 case InstructionCodes.TCALL:
                     InstructionTCALL tcallIns = (InstructionTCALL) instruction;
@@ -493,9 +497,11 @@ public class BLangVM {
                     break;
                 case InstructionCodes.TRACE_TCALL:
                     InstructionTCALL iTcallIns = (InstructionTCALL) instruction;
-                    tracer.markIn(Tracer.InstructionType.TRANSFORMER_CALL, iTcallIns.transformerInfo.getName(), sf);
+                    ballerinaTracer.buildSpan(BallerinaTracer.InstructionType.TRANSFORMER_CALL,
+                            iTcallIns.transformerInfo.getName(), sf);
                     invokeCallableUnit(iTcallIns.transformerInfo, iTcallIns.argRegs, iTcallIns.retRegs);
-                    tracer.markOut(Tracer.InstructionType.TRANSFORMER_CALL, iTcallIns.transformerInfo.getName(), sf);
+                    ballerinaTracer.finishSpan(BallerinaTracer.InstructionType.TRANSFORMER_RETURN,
+                            iTcallIns.transformerInfo.getName(), iTcallIns.transformerInfo.getName(), sf);
                     break;
                 case InstructionCodes.TR_BEGIN:
                     i = operands[0];
@@ -753,7 +759,7 @@ public class BLangVM {
                     handleReturn();
                     break;
                 case InstructionCodes.TRACE_RET:
-                    traceAndHandleReturn(tracer);
+                    traceAndHandleReturn(ballerinaTracer);
                     break;
                 case InstructionCodes.XMLATTRSTORE:
                 case InstructionCodes.XMLATTRLOAD:
@@ -2801,10 +2807,10 @@ public class BLangVM {
                 mbMap.put(workerResult.getWorkerName(), workerResult.getResult());
             }
             this.controlStack.currentFrame.getRefRegs()[offsetTimeout] = mbMap;
-        }     
+        }
     }
-    
-    private boolean invokeJoinWorkers(Map<String, BLangVMWorkers.WorkerExecutor> workers, 
+
+    private boolean invokeJoinWorkers(Map<String, BLangVMWorkers.WorkerExecutor> workers,
             Set<String> joinWorkerNames, int joinCount, long timeout) {
         ExecutorService exec = ThreadPoolFactory.getInstance().getWorkerExecutor();
         Semaphore resultCounter = new Semaphore(-joinCount + 1);
@@ -2999,7 +3005,7 @@ public class BLangVM {
         ip = currentSF.retAddrs;
     }
 
-    private void traceAndHandleReturn(Tracer tracer) {
+    private void traceAndHandleReturn(BallerinaTracer ballerinaTracer) {
         StackFrame currentSF = controlStack.popFrame();
         if (controlStack.currentFrame != null) {
             StackFrame callersSF = controlStack.currentFrame;
@@ -3007,8 +3013,8 @@ public class BLangVM {
             this.code = callersSF.packageInfo.getInstructions();
         }
         ip = currentSF.retAddrs;
-        tracer.markOut(Tracer.InstructionType.RETURN, currentSF.getCallableUnitInfo().getName(),
-                controlStack.currentFrame);
+        ballerinaTracer.finishSpan(BallerinaTracer.InstructionType.RETURN, currentSF.getCallableUnitInfo().getName(),
+                currentSF);
     }
 
     private void copyWorkersReturnValues(StackFrame workerSF, StackFrame parentsSF) {
@@ -3499,7 +3505,7 @@ public class BLangVM {
 
     /**
      * Check the compatibility of casting a JSON to a target type.
-     * 
+     *
      * @param json JSON to cast
      * @param sourceType Type of the source JSON
      * @param targetType Target type

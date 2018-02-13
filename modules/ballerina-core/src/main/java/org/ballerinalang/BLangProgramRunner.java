@@ -159,7 +159,7 @@ public class BLangProgramRunner {
     private static void initTracing(Context bContext) {
         ProgramFile programFile = bContext.getProgramFile();
         // If trace enabled, inject trace call/ret instructions
-        if (programFile.getTracer().isTraceEnabled()) {
+        if (programFile.getBallerinaTracer().isTraceEnabled()) {
             for (PackageInfo packageInfo : programFile.getPackageInfoEntries()) {
                 injectTracingInstructions(packageInfo);
             }

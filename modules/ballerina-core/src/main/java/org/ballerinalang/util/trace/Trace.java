@@ -18,15 +18,37 @@
 
 package org.ballerinalang.util.trace;
 
-/**
- * API to expose ballerina tracing hooks.
- *
- * @since 0.96.1
- */
-public interface BallerinaTracing {
-    void markIn(String parentUuid, String uuid, BallerinaTracer.InstructionType type, String workerName,
-                String methodName, String callerName);
+import java.util.UUID;
 
-    void markOut(String uuid, BallerinaTracer.InstructionType type, String workerName, String methodName,
-                 String callerName);
+/**
+ * Trace object.
+ */
+public class Trace {
+    private String name;
+    private String uuid;
+
+    private Trace() {
+
+    }
+
+    public Trace(String name) {
+        this.name = name;
+        this.uuid = UUID.randomUUID().toString();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
 }

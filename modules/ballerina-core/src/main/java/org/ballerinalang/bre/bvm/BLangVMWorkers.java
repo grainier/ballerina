@@ -35,10 +35,12 @@ import org.ballerinalang.util.codegen.CallableUnitInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
 import org.ballerinalang.util.codegen.WorkerInfo;
 import org.ballerinalang.util.exceptions.BallerinaException;
+import org.ballerinalang.util.trace.BallerinaTracer;
 
 import java.io.PrintStream;
 import java.util.Map;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Semaphore;
@@ -149,6 +151,12 @@ public class BLangVMWorkers {
         @SuppressWarnings("rawtypes")
         @Override
         public void run() throws BallerinaException {
+            BallerinaTracer ballerinaTracer = bContext.programFile.getBallerinaTracer();
+            bContext.setProperty("THREAD_ID", Thread.currentThread().getId());
+            bContext.setProperty("TRACE_ID", UUID.randomUUID().toString());
+            ballerinaTracer.buildSpan(BallerinaTracer.InstructionType.WORKER_START, workerInfo.getWorkerName(),
+                    bContext.getControlStack().currentFrame);
+
             BRefValueArray bRefValueArray = new BRefValueArray(new BArrayType(BTypes.typeAny));
             bLangVM.execWorker(bContext, workerInfo.getCodeAttributeInfo().getCodeAddrs());
             if (bContext.getError() != null) {
@@ -187,6 +195,9 @@ public class BLangVMWorkers {
             if (this.resultCounter != null) {
                 this.resultCounter.release();
             }
+
+            ballerinaTracer.finishSpan(BallerinaTracer.InstructionType.WORKER_HALT, workerInfo.getWorkerName(),
+                    bContext.getControlStack().currentFrame);
         }
         
         public void setResultCounterSemaphore(Semaphore resultCounter) {
