@@ -35,8 +35,7 @@ import org.ballerinalang.util.codegen.CallableUnitInfo;
 import org.ballerinalang.util.codegen.ProgramFile;
 import org.ballerinalang.util.codegen.WorkerInfo;
 import org.ballerinalang.util.exceptions.BallerinaException;
-import org.ballerinalang.util.tracer.TracerRegistry;
-import org.ballerinalang.util.tracex.BallerinaTracerX;
+import org.ballerinalang.util.tracer.BallerinaTracerX;
 
 import java.io.PrintStream;
 import java.util.Map;
@@ -148,9 +147,9 @@ public class BLangVMWorkers {
             this.bContext = bContext;
             this.workerInfo = workerInfo;
             this.resultHolder = resultHolder;
-            if (TracerRegistry.getInstance().getTracer() != null) {
-                this.scopes = TracerRegistry.getInstance().getTracer().getActiveSpanContext();
-            }
+//            if (TracerRegistry.getInstance().getTracer() != null) {
+//                this.scopes = TracerRegistry.getInstance().getTracer().getActiveSpanContext();
+//            }
         }
 
         @SuppressWarnings("rawtypes")
@@ -159,14 +158,14 @@ public class BLangVMWorkers {
             BallerinaTracerX ballerinaTracerX = bContext.programFile.getBallerinaTracerX();
             bContext.setProperty("THREAD_ID", Thread.currentThread().getId());
             bContext.setProperty("TRACE_ID", UUID.randomUUID().toString());
-            ballerinaTracerX.buildSpan(BallerinaTracerX.InstructionType.WORKER_START, workerInfo.getWorkerName(),
-                    bContext.getControlStack().currentFrame);
+            ballerinaTracerX.buildSpan(bContext, BallerinaTracerX.InstructionType.WORKER_START,
+                    workerInfo.getWorkerName(), bContext.getControlStack().currentFrame);
 
 
-            if (TracerRegistry.getInstance().getTracer() != null) {
-                //TODO: The worker property needs to be suffixed with thread id, until the workercontext becomes unique
-                this.bContext.setProperty(TracerRegistry.getPropertyNameForParentSpanHolder(), this.scopes);
-            }
+//            if (TracerRegistry.getInstance().getTracer() != null) {
+//              //TODO: The worker property needs to be suffixed with thread id, until the workercontext becomes unique
+//                this.bContext.setProperty(TracerRegistry.getPropertyNameForParentSpanHolder(), this.scopes);
+//            }
             BRefValueArray bRefValueArray = new BRefValueArray(new BArrayType(BTypes.typeAny));
             bLangVM.execWorker(bContext, workerInfo.getCodeAttributeInfo().getCodeAddrs());
             if (bContext.getError() != null) {
@@ -206,12 +205,12 @@ public class BLangVMWorkers {
                 this.resultCounter.release();
             }
 
-            if (TracerRegistry.getInstance().getTracer() != null) {
-                this.bContext.setProperty(TracerRegistry.getPropertyNameForParentSpanHolder(), null);
-            }
+//            if (TracerRegistry.getInstance().getTracer() != null) {
+//                this.bContext.setProperty(TracerRegistry.getPropertyNameForParentSpanHolder(), null);
+//            }
 
-            ballerinaTracerX.finishSpan(BallerinaTracerX.InstructionType.WORKER_HALT, workerInfo.getWorkerName(),
-                    bContext.getControlStack().currentFrame);
+            ballerinaTracerX.finishSpan(bContext, BallerinaTracerX.InstructionType.WORKER_HALT,
+                    workerInfo.getWorkerName(), bContext.getControlStack().currentFrame);
         }
 
         public void setResultCounterSemaphore(Semaphore resultCounter) {

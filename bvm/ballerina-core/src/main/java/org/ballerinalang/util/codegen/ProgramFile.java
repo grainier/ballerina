@@ -27,7 +27,7 @@ import org.ballerinalang.util.codegen.attributes.VarTypeCountAttributeInfo;
 import org.ballerinalang.util.codegen.cpentries.ConstantPool;
 import org.ballerinalang.util.codegen.cpentries.ConstantPoolEntry;
 import org.ballerinalang.util.debugger.Debugger;
-import org.ballerinalang.util.tracex.BallerinaTracerX;
+import org.ballerinalang.util.tracer.BallerinaTracerX;
 
 import java.nio.file.Path;
 import java.util.ArrayList;

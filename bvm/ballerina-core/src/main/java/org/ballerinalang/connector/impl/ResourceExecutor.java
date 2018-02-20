@@ -40,9 +40,11 @@ import org.ballerinalang.util.codegen.attributes.CodeAttributeInfo;
 import org.ballerinalang.util.debugger.Debugger;
 import org.ballerinalang.util.debugger.DebuggerUtil;
 import org.ballerinalang.util.exceptions.BallerinaException;
+import org.ballerinalang.util.tracer.TraceConstants;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * {@code ResourceExecutor} This provides the implementation to execute resources within Ballerina.
@@ -162,6 +164,12 @@ public class ResourceExecutor {
         if (debugger.isDebugEnabled()) {
             DebuggerUtil.initDebugContext(context, debugger);
         }
+
+        // todo: only if debug enabled
+        context.setProperty(TraceConstants.TRACE_PROPERTY_RESOURCE, resourceInfo.getName());
+        context.setProperty(TraceConstants.TRACE_PROPERTY_SERVICE, serviceInfo.getName());
+        context.setProperty(TraceConstants.TRACE_PROPERTY_REQUEST, new Random().nextLong());
+
         bLangVM.run(context);
     }
 }

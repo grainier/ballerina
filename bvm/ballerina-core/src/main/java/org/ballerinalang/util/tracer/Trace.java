@@ -16,17 +16,39 @@
  * under the License.
  */
 
-package org.ballerinalang.util.tracex;
+package org.ballerinalang.util.tracer;
+
+import java.util.UUID;
 
 /**
- * API to expose ballerina tracing hooks.
- *
- * @since 0.96.1
+ * Trace object.
  */
-public interface BallerinaTracing {
-    void markIn(String parentUuid, String uuid, BallerinaTracerX.InstructionType type, String workerName,
-                String methodName, String callerName);
+public class Trace {
+    private String name;
+    private String uuid;
 
-    void markOut(String uuid, BallerinaTracerX.InstructionType type, String workerName, String methodName,
-                 String callerName);
+    private Trace() {
+
+    }
+
+    public Trace(String name) {
+        this.name = name;
+        this.uuid = UUID.randomUUID().toString();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
 }

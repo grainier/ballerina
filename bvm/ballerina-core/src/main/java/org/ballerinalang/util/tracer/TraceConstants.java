@@ -16,39 +16,20 @@
  * under the License.
  */
 
-package org.ballerinalang.util.tracex;
+package org.ballerinalang.util.tracer;
 
-import java.util.UUID;
 
 /**
- * Trace object.
+ * {@code TraceConstants} define tracer constants.
+ *
+ * @since 0.96.1
  */
-public class Trace {
-    private String name;
-    private String uuid;
+public class TraceConstants {
 
-    private Trace() {
+    public static final String TRACE_PROPERTY_RESOURCE = "trace_resource";
 
-    }
+    public static final String TRACE_PROPERTY_SERVICE = "trace_service";
 
-    public Trace(String name) {
-        this.name = name;
-        this.uuid = UUID.randomUUID().toString();
-    }
+    public static final String TRACE_PROPERTY_REQUEST = "trace_request";
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
 }
