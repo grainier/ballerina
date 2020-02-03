@@ -139,3 +139,36 @@ function testReduce() returns float {
     }, 0.0);
     return avg;
 }
+
+function testForEach() returns float {
+    Person[] personList = getPersonList();
+    float avg = 0.0;
+    stream<Person> personStream = personList.toStream();
+    personStream.forEach(function (Person person) {
+        avg += <float>person.age / personList.length();
+    });
+    return avg;
+}
+
+//function testIterator() returns boolean {
+//    boolean testPassed = true;
+//    Person[] personList = getPersonList();
+//
+//    stream<Person> iterator = personList.toStream();
+//
+//    var ddd = aaaa();
+//    var eee = ddd.next();
+//    var filteredPerson = eee;
+//    return filteredPerson?.value == "$$$$$$$";
+//    testPassed = testPassed && filteredPerson?.value == personList[1];
+//
+//    filteredPerson = iterator.next();
+//    testPassed = testPassed && filteredPerson?.value == personList[2];
+//
+//    filteredPerson = iterator.next();
+//    testPassed = testPassed && filteredPerson?.value == personList[4];
+//
+//    filteredPerson = iterator.next();
+//    testPassed = testPassed && filteredPerson == ();
+//
+//}

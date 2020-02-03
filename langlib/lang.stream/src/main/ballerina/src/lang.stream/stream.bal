@@ -63,3 +63,23 @@ public function 'map(stream<PureType1> strm, function(PureType1 val) returns Pur
 # ```
 # is the same as `sum(1, 2, 3)`.
 public function reduce(stream<PureType1> strm, function(Type accum, PureType1 val) returns Type func, Type initial) returns Type = external;
+
+# Applies a function to each member of a stream.
+# The parameter `func` is applied to each member of stream `strm` in order.
+#
+# + strm - the stream
+# + func - a function to apply to each member
+public function forEach(stream<PureType1> strm, function(PureType1 val) returns () func) returns () = external;
+
+# Returns an iterator over a stream.
+# The iterator will iterate over the members of the stream.
+# + strm - the stream
+# + return - a new iterator object that will iterate over the members of `strm`
+public function iterator(stream<PureType1> strm) returns abstract object {
+    public function next() returns record {|
+        PureType1 value;
+    |}?;
+} {
+    StreamIterator streamIterator = new(strm);
+    return streamIterator;
+}

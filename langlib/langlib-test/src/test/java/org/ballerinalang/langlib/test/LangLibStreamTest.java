@@ -64,4 +64,16 @@ public class LangLibStreamTest {
         BValue[] values = BRunUtil.invoke(result, "testReduce", new BValue[] {});
         Assert.assertEquals(((BFloat)values[0]).floatValue(), 135.0);
     }
+
+    @Test
+    public void testForReachFunc() {
+        BValue[] values = BRunUtil.invoke(result, "testForEach", new BValue[] {});
+        Assert.assertEquals(((BFloat)values[0]).floatValue(), 135.0);
+    }
+
+//    @Test
+//    public void testIteratorFunc() {
+//        BValue[] values = BRunUtil.invoke(result, "testIterator", new BValue[] {});
+//        Assert.assertTrue(((BBoolean)values[0]).booleanValue());
+//    }
 }
