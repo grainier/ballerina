@@ -39,7 +39,7 @@ public function filter(stream<PureType1> strm, function(PureType1 val) returns b
 # + strm - The stream
 # + return - If the stream has elements, return the element wrapped in a record with single field called `value`,
 #            otherwise returns ()
-public function next(stream<PureType1> strm) returns record {PureType1 value;}? = external;
+public function next(stream<PureType1> strm) returns record {|PureType1 value;|}? = external;
 
 # Applies a function to each member of a stream and returns a new stream of the results.
 #
@@ -73,6 +73,7 @@ public function forEach(stream<PureType1> strm, function(PureType1 val) returns 
 
 # Returns an iterator over a stream.
 # The iterator will iterate over the members of the stream.
+#
 # + strm - the stream
 # + return - a new iterator object that will iterate over the members of `strm`
 public function iterator(stream<PureType1> strm) returns abstract object {

@@ -48,7 +48,7 @@ function testFilterFunc() returns boolean {
         return person.age > 100 && person.name != "James";
     });
 
-    var filteredPerson = filteredPersonStream.next();
+    record {|Person value;|}? filteredPerson = filteredPersonStream.next();
     testPassed = testPassed && filteredPerson?.value == personList[1];
 
     filteredPerson = filteredPersonStream.next();
@@ -150,25 +150,30 @@ function testForEach() returns float {
     return avg;
 }
 
-//function testIterator() returns boolean {
-//    boolean testPassed = true;
-//    Person[] personList = getPersonList();
-//
-//    stream<Person> iterator = personList.toStream();
-//
-//    var ddd = aaaa();
-//    var eee = ddd.next();
-//    var filteredPerson = eee;
-//    return filteredPerson?.value == "$$$$$$$";
-//    testPassed = testPassed && filteredPerson?.value == personList[1];
-//
-//    filteredPerson = iterator.next();
-//    testPassed = testPassed && filteredPerson?.value == personList[2];
-//
-//    filteredPerson = iterator.next();
-//    testPassed = testPassed && filteredPerson?.value == personList[4];
-//
-//    filteredPerson = iterator.next();
-//    testPassed = testPassed && filteredPerson == ();
-//
-//}
+function testIterator() returns boolean {
+    boolean testPassed = true;
+    Person[] personList = getPersonList();
+
+    stream<Person> personStream = personList.toStream();
+    var iterator = personStream.iterator();
+
+    record {|Person value;|}? filteredPerson = iterator.next();
+    testPassed = testPassed && filteredPerson?.value == personList[0];
+
+    filteredPerson = iterator.next();
+    testPassed = testPassed && filteredPerson?.value == personList[1];
+
+    filteredPerson = iterator.next();
+    testPassed = testPassed && filteredPerson?.value == personList[2];
+
+    filteredPerson = iterator.next();
+    testPassed = testPassed && filteredPerson?.value == personList[3];
+
+    filteredPerson = iterator.next();
+    testPassed = testPassed && filteredPerson?.value == personList[4];
+
+    filteredPerson = iterator.next();
+    testPassed = testPassed && filteredPerson == ();
+
+    return testPassed;
+}

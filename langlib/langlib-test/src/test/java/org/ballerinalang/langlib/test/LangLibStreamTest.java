@@ -71,9 +71,9 @@ public class LangLibStreamTest {
         Assert.assertEquals(((BFloat)values[0]).floatValue(), 135.0);
     }
 
-//    @Test
-//    public void testIteratorFunc() {
-//        BValue[] values = BRunUtil.invoke(result, "testIterator", new BValue[] {});
-//        Assert.assertTrue(((BBoolean)values[0]).booleanValue());
-//    }
+    @Test
+    public void testIteratorFunc() {
+        BValue[] values = BRunUtil.invoke(result, "testIterator", new BValue[] {});
+        Assert.assertTrue(((BBoolean)values[0]).booleanValue());
+    }
 }

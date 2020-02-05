@@ -20,15 +20,16 @@ package org.ballerinalang.langlib.stream;
 
 import org.ballerinalang.jvm.BallerinaValues;
 import org.ballerinalang.jvm.scheduling.Strand;
-import org.ballerinalang.jvm.types.BFunctionType;
-import org.ballerinalang.jvm.types.BRecordType;
-import org.ballerinalang.jvm.types.BUnionType;
+import org.ballerinalang.jvm.types.*;
 import org.ballerinalang.jvm.values.*;
-import org.ballerinalang.jvm.values.api.BStreamIterator;
 import org.ballerinalang.model.types.TypeKind;
 import org.ballerinalang.natives.annotations.BallerinaFunction;
 import org.ballerinalang.natives.annotations.Receiver;
 import org.ballerinalang.natives.annotations.ReturnType;
+import org.wso2.ballerinalang.util.Flags;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -46,7 +47,7 @@ import org.ballerinalang.natives.annotations.ReturnType;
 public class IteratorNext {
     //TODO: refactor hard coded values
     public static Object next(Strand strand, ObjectValue m) {
-        BStreamIterator strmIterator = (BStreamIterator) m.getNativeData("&iterator&");
+        StreamValue strmIterator = (StreamValue) m.getNativeData("&iterator&");
 
         if (strmIterator == null) {
             strmIterator = ((StreamValue) m.get("strm"));
@@ -55,8 +56,10 @@ public class IteratorNext {
 
         Object next = strmIterator.next(strand);
         if (next != null) {
-            BFunctionType nextFuncType = m.getType().getAttachedFunctions()[0].type;
-            BRecordType recordType = (BRecordType) ((BUnionType) nextFuncType.retType).getMemberTypes().get(0);
+            Map<String, BField> fields = new HashMap<>();
+            fields.put("value", new BField(strmIterator.getConstraintType(), "value", Flags.PUBLIC + Flags.REQUIRED));
+            BRecordType recordType = new BRecordType("$$returnType$$", strmIterator.getType().getPackage(), 0, fields,
+                    null, true, TypeFlags.PURETYPE);
             return BallerinaValues.createRecord(new MapValueImpl<>(recordType), next);
         }
 
