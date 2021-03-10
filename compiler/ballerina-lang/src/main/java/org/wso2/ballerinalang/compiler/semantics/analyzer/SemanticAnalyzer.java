@@ -2111,7 +2111,6 @@ public class SemanticAnalyzer extends BLangNodeVisitor {
         EnumSet<Flag> flags = EnumSet.of(Flag.PUBLIC, Flag.ANONYMOUS);
         BRecordTypeSymbol recordSymbol = Symbols.createRecordSymbol(Flags.asMask(flags), Names.EMPTY,
                 env.enclPkg.packageID, null, env.scope.owner, mappingMatchPattern.pos, VIRTUAL);
-        recordSymbol.name = names.fromString(anonModelHelper.getNextAnonymousTypeKey(env.enclPkg.packageID));
         LinkedHashMap<String, BField> fields = new LinkedHashMap<>();
 
         for (BLangFieldMatchPattern fieldMatchPattern : mappingMatchPattern.fieldMatchPatterns) {
@@ -2129,6 +2128,8 @@ public class SemanticAnalyzer extends BLangNodeVisitor {
         BRecordType recordVarType = new BRecordType(recordSymbol);
         recordVarType.fields = fields;
         recordVarType.restFieldType = symTable.anydataType;
+        recordSymbol.name = names.fromString(anonModelHelper.generateAnonymousTypeName(env.enclPkg.packageID,
+                recordVarType));
         if (mappingMatchPattern.restMatchPattern != null) {
             BLangRestMatchPattern restMatchPattern = mappingMatchPattern.restMatchPattern;
             restMatchPattern.type = new BMapType(TypeTags.MAP, symTable.anydataType, null);
@@ -2524,7 +2525,6 @@ public class SemanticAnalyzer extends BLangNodeVisitor {
         EnumSet<Flag> flags = EnumSet.of(Flag.PUBLIC, Flag.ANONYMOUS);
         BRecordTypeSymbol recordSymbol = Symbols.createRecordSymbol(Flags.asMask(flags), Names.EMPTY,
                 env.enclPkg.symbol.pkgID, null, env.scope.owner, mappingBindingPattern.pos, VIRTUAL);
-        recordSymbol.name = names.fromString(anonModelHelper.getNextAnonymousTypeKey(env.enclPkg.packageID));
         LinkedHashMap<String, BField> fields = new LinkedHashMap<>();
 
         for (BLangFieldBindingPattern fieldBindingPattern : mappingBindingPattern.fieldBindingPatterns) {
@@ -2539,6 +2539,8 @@ public class SemanticAnalyzer extends BLangNodeVisitor {
         BRecordType recordVarType = new BRecordType(recordSymbol);
         recordVarType.fields = fields;
         recordVarType.restFieldType = symTable.anydataType;
+        recordSymbol.name = names.fromString(anonModelHelper.generateAnonymousTypeName(env.enclPkg.packageID,
+                recordVarType));
         if (mappingBindingPattern.restBindingPattern != null) {
             BLangRestBindingPattern restBindingPattern = mappingBindingPattern.restBindingPattern;
             restBindingPattern.type = new BMapType(TypeTags.MAP, symTable.anydataType, null);

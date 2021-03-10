@@ -26,7 +26,6 @@ import org.ballerinalang.model.elements.AttachPoint;
 import org.ballerinalang.model.elements.Flag;
 import org.ballerinalang.model.elements.PackageID;
 import org.ballerinalang.model.symbols.SymbolKind;
-import org.ballerinalang.model.symbols.SymbolOrigin;
 import org.ballerinalang.model.tree.ActionNode;
 import org.ballerinalang.model.tree.IdentifierNode;
 import org.ballerinalang.model.tree.NodeKind;
@@ -1053,25 +1052,22 @@ public class TypeChecker extends BLangNodeVisitor {
 
     private BRecordType createTableConstraintRecordType(Set<BField> allFieldSet, Location pos) {
         PackageID pkgID = env.enclPkg.symbol.pkgID;
-        BRecordTypeSymbol recordSymbol = createRecordTypeSymbol(pkgID, pos, VIRTUAL);
+        BRecordType recordType = types.createAnonymousRecordType(pkgID, pos, env);
+        BRecordTypeSymbol recordSymbol = (BRecordTypeSymbol) recordType.tsymbol;
+        recordType.fields = allFieldSet.stream().collect(getFieldCollector());
+        recordType.sealed = true;
+        recordType.restFieldType = symTable.noType;
+        recordSymbol.name = names.fromString(anonymousModelHelper.generateAnonymousTypeName(recordSymbol));
 
         for (BField field : allFieldSet) {
             recordSymbol.scope.define(field.name, field.symbol);
         }
-
-        BRecordType recordType = new BRecordType(recordSymbol);
-        recordType.fields = allFieldSet.stream().collect(getFieldCollector());
-
-        recordSymbol.type = recordType;
-        recordType.tsymbol = recordSymbol;
 
         BLangRecordTypeNode recordTypeNode = TypeDefBuilderHelper.createRecordTypeNode(recordType, pkgID, symTable,
                 pos);
         recordTypeNode.initFunction = TypeDefBuilderHelper.createInitFunctionForRecordType(recordTypeNode, env,
                                                                                            names, symTable);
         TypeDefBuilderHelper.addTypeDefinition(recordType, recordSymbol, recordTypeNode, env);
-        recordType.sealed = true;
-        recordType.restFieldType = symTable.noType;
         return recordType;
     }
 
@@ -1655,10 +1651,10 @@ public class TypeChecker extends BLangNodeVisitor {
         }
 
         PackageID pkgID = env.enclPkg.symbol.pkgID;
-        BRecordTypeSymbol recordSymbol = createRecordTypeSymbol(pkgID, recordLiteral.pos, VIRTUAL);
+        BRecordType recordType = types.createAnonymousRecordType(pkgID, recordLiteral.pos, env);
+        BRecordTypeSymbol recordSymbol = (BRecordTypeSymbol) recordType.tsymbol;
 
         LinkedHashMap<String, BField> newFields = new LinkedHashMap<>();
-
         for (Map.Entry<String, RecordLiteralNode.RecordField> readOnlyEntry : readOnlyFields.entrySet()) {
             RecordLiteralNode.RecordField field = readOnlyEntry.getValue();
 
@@ -1682,7 +1678,6 @@ public class TypeChecker extends BLangNodeVisitor {
             recordSymbol.scope.define(fieldName, fieldSymbol);
         }
 
-        BRecordType recordType = new BRecordType(recordSymbol, recordSymbol.flags);
         if (applicableMappingType.tag == TypeTags.MAP) {
             recordType.sealed = false;
             recordType.restFieldType = ((BMapType) applicableMappingType).constraint;
@@ -1725,6 +1720,7 @@ public class TypeChecker extends BLangNodeVisitor {
         recordType.fields = newFields;
         recordSymbol.type = recordType;
         recordType.tsymbol = recordSymbol;
+        recordSymbol.name = names.fromString(anonymousModelHelper.generateAnonymousTypeName(recordSymbol));
 
         BLangRecordTypeNode recordTypeNode = TypeDefBuilderHelper.createRecordTypeNode(recordType, pkgID, symTable,
                                                                                        recordLiteral.pos);
@@ -2192,12 +2188,9 @@ public class TypeChecker extends BLangNodeVisitor {
     @Override
     public void visit(BLangRecordVarRef varRefExpr) {
         LinkedHashMap<String, BField> fields = new LinkedHashMap<>();
-
-        String recordName = this.anonymousModelHelper.getNextAnonymousTypeKey(env.enclPkg.symbol.pkgID);
-        BRecordTypeSymbol recordSymbol = Symbols.createRecordSymbol(Flags.ANONYMOUS, names.fromString(recordName),
+        BRecordTypeSymbol recordSymbol = Symbols.createRecordSymbol(Flags.ANONYMOUS, Names.EMPTY,
                                                                     env.enclPkg.symbol.pkgID, null, env.scope.owner,
                                                                     varRefExpr.pos, SOURCE);
-        symbolEnter.defineSymbol(varRefExpr.pos, recordSymbol, env);
 
         boolean unresolvedReference = false;
         for (BLangRecordVarRef.BLangRecordVarRefKeyValue recordRefField : varRefExpr.recordRefFields) {
@@ -2230,9 +2223,12 @@ public class TypeChecker extends BLangNodeVisitor {
         BRecordType bRecordType = new BRecordType(recordSymbol);
         bRecordType.fields = fields;
         recordSymbol.type = bRecordType;
+        recordSymbol.name = names.fromString(anonymousModelHelper.generateAnonymousTypeName(env.enclPkg.packageID,
+                bRecordType));
         varRefExpr.symbol = new BVarSymbol(0, recordSymbol.name,
                                            env.enclPkg.symbol.pkgID, bRecordType, env.scope.owner, varRefExpr.pos,
                                            SOURCE);
+        symbolEnter.defineSymbol(varRefExpr.pos, recordSymbol, env);
 
         if (restParam == null) {
             bRecordType.sealed = true;
@@ -5599,8 +5595,9 @@ public class TypeChecker extends BLangNodeVisitor {
             // required/defaultable paramtypes as members.
             PackageID pkgID = env.enclPkg.symbol.pkgID;
             List<BType> tupleMemberTypes = new ArrayList<>();
-            BRecordTypeSymbol recordSymbol = createRecordTypeSymbol(pkgID, null, VIRTUAL);
-            mappingTypeRestArg = new BRecordType(recordSymbol);
+
+            mappingTypeRestArg = types.createAnonymousRecordType(pkgID, null, env);
+            BRecordTypeSymbol recordSymbol = (BRecordTypeSymbol) mappingTypeRestArg.tsymbol;
             LinkedHashMap<String, BField> fields = new LinkedHashMap<>();
             BType tupleRestType = null;
             BVarSymbol fieldSymbol;
@@ -5637,6 +5634,7 @@ public class TypeChecker extends BLangNodeVisitor {
             mappingTypeRestArg.fields = fields;
             recordSymbol.type = mappingTypeRestArg;
             mappingTypeRestArg.tsymbol = recordSymbol;
+            recordSymbol.name = names.fromString(anonymousModelHelper.generateAnonymousTypeName(recordSymbol));
         }
 
         // Check whether the expected param count and the actual args counts are matching.
@@ -7330,8 +7328,6 @@ public class TypeChecker extends BLangNodeVisitor {
 
     private BType defineInferredRecordType(BLangRecordLiteral recordLiteral, BType expType) {
         PackageID pkgID = env.enclPkg.symbol.pkgID;
-        BRecordTypeSymbol recordSymbol = createRecordTypeSymbol(pkgID, recordLiteral.pos, VIRTUAL);
-
         Map<String, FieldInfo> nonRestFieldTypes = new LinkedHashMap<>();
         List<BType> restFieldTypes = new ArrayList<>();
 
@@ -7390,6 +7386,8 @@ public class TypeChecker extends BLangNodeVisitor {
             }
         }
 
+        BRecordType recordType = types.createAnonymousRecordType(pkgID, recordLiteral.pos, env);
+        BRecordTypeSymbol recordSymbol = (BRecordTypeSymbol) recordType.tsymbol;
         LinkedHashMap<String, BField> fields = new LinkedHashMap<>();
         boolean allReadOnlyNonRestFields = true;
 
@@ -7425,7 +7423,6 @@ public class TypeChecker extends BLangNodeVisitor {
             recordSymbol.scope.define(fieldName, fieldSymbol);
         }
 
-        BRecordType recordType = new BRecordType(recordSymbol);
         recordType.fields = fields;
 
         if (restFieldTypes.contains(symTable.semanticError)) {
@@ -7448,6 +7445,8 @@ public class TypeChecker extends BLangNodeVisitor {
             recordSymbol.flags |= Flags.READONLY;
         }
 
+        recordSymbol.name = names.fromString(anonymousModelHelper.generateAnonymousTypeName(recordSymbol));
+
         BLangRecordTypeNode recordTypeNode = TypeDefBuilderHelper.createRecordTypeNode(recordType, pkgID, symTable,
                                                                                        recordLiteral.pos);
         recordTypeNode.initFunction = TypeDefBuilderHelper.createInitFunctionForRecordType(recordTypeNode, env,
@@ -7455,28 +7454,6 @@ public class TypeChecker extends BLangNodeVisitor {
         TypeDefBuilderHelper.addTypeDefinition(recordType, recordSymbol, recordTypeNode, env);
 
         return recordType;
-    }
-
-    private BRecordTypeSymbol createRecordTypeSymbol(PackageID pkgID, Location location,
-                                                     SymbolOrigin origin) {
-        BRecordTypeSymbol recordSymbol =
-                Symbols.createRecordSymbol(Flags.ANONYMOUS,
-                                           names.fromString(anonymousModelHelper.getNextAnonymousTypeKey(pkgID)),
-                                           pkgID, null, env.scope.owner, location, origin);
-
-        BInvokableType bInvokableType = new BInvokableType(new ArrayList<>(), symTable.nilType, null);
-        BInvokableSymbol initFuncSymbol = Symbols.createFunctionSymbol(
-                Flags.PUBLIC, Names.EMPTY, env.enclPkg.symbol.pkgID, bInvokableType, env.scope.owner, false,
-                symTable.builtinPos, VIRTUAL);
-        initFuncSymbol.retType = symTable.nilType;
-        recordSymbol.initializerFunc = new BAttachedFunction(Names.INIT_FUNCTION_SUFFIX, initFuncSymbol,
-                                                             bInvokableType, location);
-
-        recordSymbol.scope = new Scope(recordSymbol);
-        recordSymbol.scope.define(
-                names.fromString(recordSymbol.name.value + "." + recordSymbol.initializerFunc.funcName.value),
-                recordSymbol.initializerFunc.symbol);
-        return recordSymbol;
     }
 
     private String getKeyName(BLangExpression key) {

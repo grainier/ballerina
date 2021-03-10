@@ -18,6 +18,9 @@ package org.wso2.ballerinalang.compiler.parser;
 
 import org.ballerinalang.model.elements.PackageID;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BSymbol;
+import org.wso2.ballerinalang.compiler.semantics.model.symbols.BTypeSymbol;
+import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
+import org.wso2.ballerinalang.compiler.tree.BLangNode;
 import org.wso2.ballerinalang.compiler.util.CompilerContext;
 import org.wso2.ballerinalang.compiler.util.Name;
 
@@ -82,7 +85,21 @@ public class BLangAnonymousModelHelper {
         return helper;
     }
 
-    public String getNextAnonymousTypeKey(PackageID packageID) {
+    public String generateAnonymousTypeName(BTypeSymbol anonTypeSymbol) {
+        PackageID packageID = anonTypeSymbol.pkgID;
+        return generateAnonymousTypeName(packageID, anonTypeSymbol.type);
+    }
+
+    public String generateAnonymousTypeName(PackageID packageID, BLangNode node) {
+        Integer nextValue = Optional.ofNullable(anonTypeCount.get(packageID)).orElse(0);
+        anonTypeCount.put(packageID, nextValue + 1);
+        if (PackageID.ANNOTATIONS.equals(packageID)) {
+            return BUILTIN_ANON_TYPE + UNDERSCORE + nextValue;
+        }
+        return ANON_TYPE + UNDERSCORE + nextValue;
+    }
+
+    public String generateAnonymousTypeName(PackageID packageID, BType type) {
         Integer nextValue = Optional.ofNullable(anonTypeCount.get(packageID)).orElse(0);
         anonTypeCount.put(packageID, nextValue + 1);
         if (PackageID.ANNOTATIONS.equals(packageID)) {

@@ -790,7 +790,7 @@ public class BLangNodeTransformer extends NodeTransformer<BLangNode> {
 
             // Create a new anonymous type definition.
             BLangTypeDefinition typeDef = (BLangTypeDefinition) TreeBuilder.createTypeDefinition();
-            String genName = anonymousModelHelper.getNextAnonymousTypeKey(packageID);
+            String genName = anonymousModelHelper.generateAnonymousTypeName(packageID, finiteTypeNode);
             IdentifierNode anonTypeGenName = createIdentifier(identifierPos, genName);
             typeDef.setName(anonTypeGenName);
             typeDef.flagSet.add(Flag.PUBLIC);
@@ -905,7 +905,7 @@ public class BLangNodeTransformer extends NodeTransformer<BLangNode> {
         BLangTypeDefinition bLTypeDef = (BLangTypeDefinition) TreeBuilder.createTypeDefinition();
 
         // Generate a name for the anonymous object
-        String genName = anonymousModelHelper.getNextAnonymousTypeKey(packageID);
+        String genName = anonymousModelHelper.generateAnonymousTypeName(packageID, toIndirect);
         IdentifierNode anonTypeGenName = createIdentifier(symTable.builtinPos, genName);
         bLTypeDef.setName(anonTypeGenName);
         bLTypeDef.flagSet.add(Flag.PUBLIC);
@@ -1138,7 +1138,7 @@ public class BLangNodeTransformer extends NodeTransformer<BLangNode> {
         objectCtorExpression.classNode = anonClass;
 
         // Generate a name for the anonymous object
-        String genName = anonymousModelHelper.getNextAnonymousTypeKey(packageID);
+        String genName = anonymousModelHelper.generateAnonymousTypeName(packageID, anonClass);
         IdentifierNode anonTypeGenName = createIdentifier(pos, genName);
         anonClass.setName(anonTypeGenName);
         anonClass.flagSet.add(Flag.PUBLIC);
@@ -3754,7 +3754,7 @@ public class BLangNodeTransformer extends NodeTransformer<BLangNode> {
         }
 
         // Generate a name for the anonymous class
-        String genName = anonymousModelHelper.getNextAnonymousTypeKey(packageID);
+        String genName = anonymousModelHelper.generateAnonymousTypeName(packageID, annonClassDef);
         IdentifierNode anonTypeGenName = createIdentifier(pos, genName);
         annonClassDef.setName(anonTypeGenName);
         annonClassDef.flagSet.add(Flag.PUBLIC);
@@ -5808,7 +5808,7 @@ public class BLangNodeTransformer extends NodeTransformer<BLangNode> {
         BLangTypeDefinition typeDef = (BLangTypeDefinition) TreeBuilder.createTypeDefinition();
         Location pos = getPosition(recordTypeDescriptorNode);
         // Generate a name for the anonymous object
-        String genName = anonymousModelHelper.getNextAnonymousTypeKey(this.packageID);
+        String genName = anonymousModelHelper.generateAnonymousTypeName(this.packageID, recordTypeNode);
         IdentifierNode anonTypeGenName = createIdentifier(pos, genName, null);
         typeDef.setName(anonTypeGenName);
         typeDef.flagSet.add(Flag.PUBLIC);

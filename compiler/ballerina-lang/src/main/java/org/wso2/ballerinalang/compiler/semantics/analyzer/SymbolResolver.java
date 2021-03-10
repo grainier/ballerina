@@ -1150,7 +1150,7 @@ public class SymbolResolver extends BLangNodeVisitor {
 
             if (env.node.getKind() != NodeKind.PACKAGE) {
                 recordSymbol.name = names.fromString(
-                        anonymousModelHelper.getNextAnonymousTypeKey(env.enclPkg.packageID));
+                        anonymousModelHelper.generateAnonymousTypeName(env.enclPkg.packageID, recordTypeNode));
                 symbolEnter.defineSymbol(recordTypeNode.pos, recordTypeNode.symbol, env);
                 symbolEnter.defineNode(recordTypeNode, env);
             }

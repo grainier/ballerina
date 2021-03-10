@@ -22,6 +22,7 @@ import io.ballerina.tools.diagnostics.Location;
 import org.ballerinalang.model.Name;
 import org.ballerinalang.model.TreeBuilder;
 import org.ballerinalang.model.elements.Flag;
+import org.ballerinalang.model.elements.PackageID;
 import org.ballerinalang.model.tree.NodeKind;
 import org.ballerinalang.model.types.SelectivelyImmutableReferenceType;
 import org.ballerinalang.model.types.TypeKind;
@@ -3651,7 +3652,8 @@ public class Types {
 
     private BType createRecordIntersection(BType recordTypeOne, BType recordTypeTwo, SymbolEnv env) {
 
-        BRecordType recordType = createAnonymousRecord(env);
+        BRecordType recordType = createAnonymousRecordType(env.enclPkg.symbol.pkgID, null, env);
+        BRecordTypeSymbol recordSymbol = (BRecordTypeSymbol) recordType.tsymbol;
 
         if (!populateRecordFields(recordType, recordTypeOne, env, null) ||
                 !populateRecordFields(recordType, recordTypeTwo, env, null)) {
@@ -3665,34 +3667,34 @@ public class Types {
             return symTable.semanticError;
         }
 
+        recordSymbol.name = names.fromString(anonymousModelHelper.generateAnonymousTypeName(recordSymbol));
+
         return recordType;
     }
 
-    private BRecordType createAnonymousRecord(SymbolEnv env) {
+    public BRecordType createAnonymousRecordType(PackageID pkgID, Location location, SymbolEnv env) {
+        location = (location == null) ? symTable.builtinPos : location;
         EnumSet<Flag> flags = EnumSet.of(Flag.PUBLIC, Flag.ANONYMOUS);
-        BRecordTypeSymbol recordSymbol = Symbols.createRecordSymbol(Flags.asMask(flags), Names.EMPTY,
-                                                                                env.enclPkg.packageID, null,
-                                                                                env.scope.owner, null, VIRTUAL);
-        recordSymbol.name = names.fromString(
-                anonymousModelHelper.getNextAnonymousTypeKey(env.enclPkg.packageID));
+        BRecordTypeSymbol recordSymbol = Symbols.createRecordSymbol(Flags.asMask(flags),  Names.EMPTY,
+                pkgID, null, env.scope.owner, location, VIRTUAL);
         BInvokableType bInvokableType = new BInvokableType(new ArrayList<>(), symTable.nilType, null);
         BInvokableSymbol initFuncSymbol = Symbols.createFunctionSymbol(
-                Flags.PUBLIC, Names.EMPTY, env.enclPkg.symbol.pkgID, bInvokableType, env.scope.owner, false,
-                symTable.builtinPos, VIRTUAL);
+                Flags.PUBLIC, Names.EMPTY, pkgID, bInvokableType, env.scope.owner, false, location, VIRTUAL);
         initFuncSymbol.retType = symTable.nilType;
         recordSymbol.initializerFunc = new BAttachedFunction(Names.INIT_FUNCTION_SUFFIX, initFuncSymbol,
-                                                                         bInvokableType, symTable.builtinPos);
+                bInvokableType, location);
         recordSymbol.scope = new Scope(recordSymbol);
 
         BRecordType recordType = new BRecordType(recordSymbol);
         recordType.tsymbol = recordSymbol;
         recordSymbol.type = recordType;
-
         return recordType;
     }
 
     private BType createRecordAndMapIntersection(BType type, BType mapType, SymbolEnv env) {
-        BRecordType intersectionRecord = createAnonymousRecord(env);
+        BRecordType intersectionRecord = createAnonymousRecordType(env.enclPkg.symbol.pkgID, null, env);
+        BRecordTypeSymbol recordSymbol = (BRecordTypeSymbol) intersectionRecord.tsymbol;
+
         if (!populateRecordFields(intersectionRecord, type, env, ((BMapType) mapType).constraint)) {
             return symTable.semanticError;
         }
@@ -3700,6 +3702,8 @@ public class Types {
         if (intersectionRecord.restFieldType == symTable.semanticError) {
             return symTable.semanticError;
         }
+
+        recordSymbol.name = names.fromString(anonymousModelHelper.generateAnonymousTypeName(recordSymbol));
 
         return intersectionRecord;
     }
