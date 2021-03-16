@@ -139,78 +139,117 @@ public class AnonTypeNameVisitor implements UniqueTypeVisitor<Integer> {
 
     @Override
     public Integer visit(BAnnotationType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.getKind().typeName());
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BArrayType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.size, type.state.getValue(), visit(type.eType));
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BBuiltInRefType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.getKind().typeName());
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BAnyType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.getKind().typeName());
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BFutureType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), visit(type.constraint));
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BHandleType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.getKind().typeName());
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BMapType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), visit(type.constraint));
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BStreamType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), visit(type.constraint), visit(type.error));
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BTypedescType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), visit(type.constraint));
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BXMLType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), visit(type.constraint));
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BAnydataType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.getKind().typeName());
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BErrorType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), visit(type.detailType));
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BInvokableType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.paramTypes.stream().mapToInt(this::visit).toArray(),
                 visit(type.restType), visit(type.retType));
         return addToVisited(type, hash);
@@ -218,42 +257,63 @@ public class AnonTypeNameVisitor implements UniqueTypeVisitor<Integer> {
 
     @Override
     public Integer visit(BJSONType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.getKind().typeName());
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BParameterizedType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.paramIndex, visit(type.paramValueType));
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BNeverType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), Names.NEVER.value);
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BNilType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), Names.NIL_VALUE.value);
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BNoType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), NO_TYPE);
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BPackageType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.getKind().typeName());
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BTupleType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         List<Integer> tupleTypesHashes = getTypesHashes(type.getTupleTypes());
         Integer hash = hash(baseHash(type), tupleTypesHashes, visit(type.restType));
         return addToVisited(type, hash);
@@ -261,6 +321,9 @@ public class AnonTypeNameVisitor implements UniqueTypeVisitor<Integer> {
 
     @Override
     public Integer visit(BIntersectionType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         List<Integer> constituentTypesHashes = getTypesHashes(type.getConstituentTypes());
         Integer hash = hash(baseHash(type), constituentTypesHashes, visit(type.effectiveType));
         return addToVisited(type, hash);
@@ -268,6 +331,9 @@ public class AnonTypeNameVisitor implements UniqueTypeVisitor<Integer> {
 
     @Override
     public Integer visit(BTableType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), type.fieldNameList,
                 visit(type.constraint), visit(type.keyTypeConstraint));
         return addToVisited(type, hash);
@@ -275,6 +341,9 @@ public class AnonTypeNameVisitor implements UniqueTypeVisitor<Integer> {
 
     @Override
     public Integer visit(BFiniteType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         List<Integer> valueSpaceHashes = type.getValueSpace().stream().map(Object::toString)
                 .sorted().map(String::hashCode).collect(Collectors.toList());
         Integer hash = hash(baseHash(type), type.isAnyData, valueSpaceHashes);
@@ -283,6 +352,9 @@ public class AnonTypeNameVisitor implements UniqueTypeVisitor<Integer> {
 
     @Override
     public Integer visit(BStructureType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         List<Integer> fieldsHashes = getFieldsHashes(type.fields);
         List<Integer> typeInclHashes = getTypesHashes(type.typeInclusions);
         Integer hash = hash(baseHash(type), fieldsHashes, typeInclHashes);
@@ -291,6 +363,9 @@ public class AnonTypeNameVisitor implements UniqueTypeVisitor<Integer> {
 
     @Override
     public Integer visit(BObjectType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         List<Integer> fieldsHashes = getFieldsHashes(type.fields);
         List<Integer> typeInclHashes = getTypesHashes(type.typeInclusions);
         final int initFunctionHash = getFunctionHash(((BObjectTypeSymbol) type.tsymbol).initializerFunc);
@@ -302,6 +377,9 @@ public class AnonTypeNameVisitor implements UniqueTypeVisitor<Integer> {
 
     @Override
     public Integer visit(BRecordType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         List<Integer> fieldsHashes = getFieldsHashes(type.fields);
         List<Integer> typeInclHashes = getTypesHashes(type.typeInclusions);
         Integer hash = hash(baseHash(type), type.sealed, fieldsHashes, visit(type.restFieldType), typeInclHashes);
@@ -310,19 +388,30 @@ public class AnonTypeNameVisitor implements UniqueTypeVisitor<Integer> {
 
     @Override
     public Integer visit(BUnionType type) {
-        List<Integer> memberTypesHashes = getTypesHashes(type.getMemberTypes());
-        Integer hash = hash(baseHash(type), type.isAnyData, type.isPureType, type.isCyclic, memberTypesHashes);
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
+        List<Integer> memberTypesHashes = type.isCyclic
+                ? getTypeNamesHashes(type.getMemberTypes())
+                : getTypesHashes(type.getMemberTypes());
+        Integer hash = hash(baseHash(type), type.isAnyData, type.isPureType, memberTypesHashes);
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BIntSubType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), Names.INT.value, type.name.getValue());
         return addToVisited(type, hash);
     }
 
     @Override
     public Integer visit(BXMLSubType type) {
+        if (isVisited(type)) {
+            return visited.get(type);
+        }
         Integer hash = hash(baseHash(type), Names.XML.value, type.name.getValue());
         return addToVisited(type, hash);
     }
@@ -349,6 +438,11 @@ public class AnonTypeNameVisitor implements UniqueTypeVisitor<Integer> {
     private List<Integer> getTypesHashes(Collection<BType> types) {
         return types.stream().sorted(Comparator.comparingInt(f -> f.tag))
                 .map(this::visit).collect(Collectors.toList());
+    }
+
+    private List<Integer> getTypeNamesHashes(Collection<BType> types) {
+        return types.stream().sorted(Comparator.comparingInt(t -> t.tag))
+                .map(t -> hash(t.name.getValue())).collect(Collectors.toList());
     }
 
     private List<Integer> getFieldsHashes(Map<String, BField> fields) {
