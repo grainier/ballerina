@@ -17,6 +17,7 @@
 package org.wso2.ballerinalang.compiler.parser;
 
 import org.ballerinalang.model.elements.PackageID;
+import org.wso2.ballerinalang.compiler.semantics.analyzer.AnonTypeNameVisitor;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.symbols.BTypeSymbol;
 import org.wso2.ballerinalang.compiler.semantics.model.types.BType;
@@ -47,6 +48,7 @@ public class BLangAnonymousModelHelper {
     private Map<PackageID, Integer> tupleVarCount;
     private Map<PackageID, Integer> recordVarCount;
     private Map<PackageID, Integer> errorVarCount;
+    private AnonTypeNameVisitor anonTypeNameVisitor = new AnonTypeNameVisitor();
 
     private static final String ANON_TYPE = "$anonType$";
     public static final String LAMBDA = "$lambda$";
@@ -90,16 +92,15 @@ public class BLangAnonymousModelHelper {
         return generateAnonymousTypeName(packageID, anonTypeSymbol.type);
     }
 
-    public String generateAnonymousTypeName(PackageID packageID, BLangNode node) {
-        Integer nextValue = Optional.ofNullable(anonTypeCount.get(packageID)).orElse(0);
-        anonTypeCount.put(packageID, nextValue + 1);
+    public String generateAnonymousTypeName(PackageID packageID, BType type) {
+        Integer typeHash = anonTypeNameVisitor.visit(type);
         if (PackageID.ANNOTATIONS.equals(packageID)) {
-            return BUILTIN_ANON_TYPE + UNDERSCORE + nextValue;
+            return BUILTIN_ANON_TYPE + UNDERSCORE + typeHash;
         }
-        return ANON_TYPE + UNDERSCORE + nextValue;
+        return ANON_TYPE + UNDERSCORE + typeHash;
     }
 
-    public String generateAnonymousTypeName(PackageID packageID, BType type) {
+    public String generateAnonymousTypeName(PackageID packageID, BLangNode node) {
         Integer nextValue = Optional.ofNullable(anonTypeCount.get(packageID)).orElse(0);
         anonTypeCount.put(packageID, nextValue + 1);
         if (PackageID.ANNOTATIONS.equals(packageID)) {
